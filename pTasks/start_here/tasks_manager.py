@@ -1,5 +1,6 @@
 import logging
 from task import Task
+import authmgr
 
 class TasksManager:
     FILENAME = "tasks.txt"
@@ -9,7 +10,9 @@ class TasksManager:
         self.filepath = TasksManager.FILENAME
         self.logger.debug(f"Tasks file is at {self.filepath}")
 
-    def add(self, creator, task_description):
+    def add(self, autherization, task_description):
+        if _is_urgent(task_description) and not autherization.allows(authmgr.URGENT_TASK):
+            raise authmgr.InvalidAuth(authmgr.URGENT_TASK)
         try:
             with open(self.filepath, "a") as file:
                 file.write(task_description + "\n")
@@ -18,16 +21,19 @@ class TasksManager:
             self.logger.error(f"Failed to write task to file. File: {self.filepath}, Message: {task_description}")
             return False
 
-    def get_active_tasks(self):
+    def get_active_tasks(self, autherization):
         try:
             with open(self.filepath, "r") as file:
                 lines = file.readlines()
 
             tasks = [
-                Task("unknown", line.startswith("!"), line.lstrip("!").rstrip())
+                Task("unknown", _is_urgent(line), line.lstrip("!").rstrip())
                 for line in lines
             ]
             return tasks
         except Exception as ex:
             self.logger.warning(f"No active tasks found -or- an error happened: {ex}")
             return []
+
+def _is_urgent(task_description):
+    return task_description.startswith("!")

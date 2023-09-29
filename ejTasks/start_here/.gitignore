@@ -1,4 +1,5 @@
 *.class
+*.lck
 tasks.log
 tasks.txt
 
