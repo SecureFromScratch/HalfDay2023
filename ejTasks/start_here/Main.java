@@ -65,7 +65,7 @@ final class Main
 		String newTaskDescription = a_connection.getInput();				
 		if (!newTaskDescription.isEmpty()) {
 			if (newTaskDescription.startsWith("!") && !a_username.equals("theboss")) {
-				a_connection.writeln(String.format("You are not autherized to enter an urgent task"));
+				a_connection.writeln(String.format("You are not authorized to enter an urgent task"));
 			}
 			else {
 				a_tasksMgr.Add(a_username, newTaskDescription);

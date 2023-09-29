@@ -47,7 +47,7 @@ def perform_add_task_dialog(tasks_mgr, username, connection):
     new_task_description = connection.get_input().strip()
     if new_task_description:
         if new_task_description.startswith("!") and username != "theboss":
-            connection.writeln(f"You are not autherized to enter an urgent task")
+            connection.writeln(f"You are not authorized to enter an urgent task")
         else:
             tasks_mgr.add(username, new_task_description)
             connection.writeln(f"Task added")
