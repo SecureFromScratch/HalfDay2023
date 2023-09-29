@@ -55,15 +55,22 @@ final class Main
     
     private static void performAddTaskDialog(String a_username, TasksManager a_tasksMgr, Connection a_connection) {
 		a_connection.writeln(String.format("%s, you can now add a new task or quit.", a_username));
-		a_connection.writeln(String.format("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
-		a_connection.writeln(String.format("This is a normal task"));
-		a_connection.writeln(String.format("!This is an urgent task"));
-		a_connection.writeln(String.format("Add a new task now or press enter on an empty line to quit."));
-
+		if (a_username.equals("theboss")) {
+			a_connection.writeln(String.format("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
+			a_connection.writeln(String.format("This is a normal task"));
+			a_connection.writeln(String.format("!This is an urgent task"));
+			a_connection.writeln(String.format("Add a new task now or press enter on an empty line to quit."));
+		}
+		
 		String newTaskDescription = a_connection.getInput();				
 		if (!newTaskDescription.isEmpty()) {
-			a_tasksMgr.Add(a_username, newTaskDescription);
-			a_connection.writeln(String.format("Task added"));
+			if (newTaskDescription.startsWith("!") && !a_username.equals("theboss")) {
+				a_connection.writeln(String.format("You are not autherized to enter an urgent task"));
+			}
+			else {
+				a_tasksMgr.Add(a_username, newTaskDescription);
+				a_connection.writeln(String.format("Task added"));
+			}
 		}
 		a_connection.writeln(String.format("Goodbye %s.", a_username));
     }
