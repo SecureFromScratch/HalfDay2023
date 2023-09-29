@@ -29,9 +29,11 @@ final class TasksManager
         a_logger.log(Level.FINE, String.format("Tasks file is at %s", m_filepath));
     }
 
-    public boolean Add(String a_creator, String a_taskDescription) 
+    public boolean Add(Autherization a_autherization, String a_taskDescription) throws AuthMgr.InvalidAuth 
     {
-    	// NOTE: a_creator is ignored for now
+    	if (isUrgent(a_taskDescription) && !a_autherization.allows(AuthMgr.URGENT_TASK)) {
+    		throw new AuthMgr.InvalidAuth(AuthMgr.URGENT_TASK);
+    	}
         try {
 			Files.write(m_filepath, Arrays.asList(a_taskDescription), new StandardOpenOption[]{ StandardOpenOption.CREATE, StandardOpenOption.APPEND });
 		} 
@@ -43,7 +45,7 @@ final class TasksManager
         return true;                
     }
 
-    public Task[] GetActiveTasks()
+    public Task[] GetActiveTasks(Autherization a_autherization)
     {
         try
         {
@@ -51,7 +53,7 @@ final class TasksManager
         	List<Task> tasks = new ArrayList<Task>(lines.size());
 	        for (String line : lines)
             {
-	        	final boolean isUrgent = (line.charAt(0) == '!');
+	        	final boolean isUrgent = isUrgent(line);
 	        	final String msg = isUrgent ? line.substring(1) : line;
 	        	Task t = new Task("unknown", isUrgent, msg);
 	        	tasks.add(t);
@@ -64,4 +66,8 @@ final class TasksManager
         	return NO_TASKS;
         }
     }	
+    
+    private static boolean isUrgent(String a_taskDesc) {
+    	return a_taskDesc.charAt(0) == '!';
+    }
 }

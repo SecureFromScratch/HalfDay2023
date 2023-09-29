@@ -14,34 +14,35 @@ import java.nio.file.Paths;
 final class Main
 {
 	private final static Path SHUTDOWN_PWD_FILE = Paths.get("..", "..", "shutdown.txt");
+	private final static Logger s_logger = Logger.getLogger("main");
 	
     public static void main(String[] a_args) throws IOException
     {
-		final Logger logger = Logger.getLogger("main");
-		String shutdownPassword = loadShutdownPasword(logger);
-		SimpleServer server = SimpleServer.create(extractPort(a_args), logger);
-		TasksManager tasksMgr = new TasksManager(logger); 
+		String shutdownPassword = loadShutdownPasword();
+		SimpleServer server = SimpleServer.create(extractPort(a_args), s_logger);
+		TasksManager tasksMgr = new TasksManager(s_logger); 
 		while (true) {
 			try (Connection c = server.waitForConnection()) {
 				String username = c.getInput();
 				if (username.equals(shutdownPassword)) {
-					logger.log(Level.INFO, "Received shutdown");
+					s_logger.log(Level.INFO, "Received shutdown");
 					break;
 				}
-				displayActiveTasks(username, tasksMgr, c);
-				performAddTaskDialog(username, tasksMgr, c);
+				final Autherization autherization = AuthMgr.getAutherization(username, s_logger);
+				displayActiveTasks(autherization, tasksMgr, c);
+				performAddTaskDialog(autherization, tasksMgr, c);
 			}
 		}
 		
     }
 
-    private static void displayActiveTasks(String a_username, TasksManager a_tasksMgr, Connection a_connection) {
-		Task[] tasks = a_tasksMgr.GetActiveTasks();
+    private static void displayActiveTasks(Autherization a_autherization, TasksManager a_tasksMgr, Connection a_connection) {
+		Task[] tasks = a_tasksMgr.GetActiveTasks(a_autherization);
 		if (tasks.length == 0) {
-			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_username));				
+			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_autherization.getUsername()));				
 		}
 		else {
-			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_username));
+			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_autherization.getUsername()));
 			for (Task t : tasks) {
 				if (t.isUrgent()) {
 					a_connection.writeln(String.format("- URGENT: %s", t.getDescription()));
@@ -53,19 +54,26 @@ final class Main
 		}
     }
     
-    private static void performAddTaskDialog(String a_username, TasksManager a_tasksMgr, Connection a_connection) {
-		a_connection.writeln(String.format("%s, you can now add a new task or quit.", a_username));
-		a_connection.writeln(String.format("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
-		a_connection.writeln(String.format("This is a normal task"));
-		a_connection.writeln(String.format("!This is an urgent task"));
-		a_connection.writeln(String.format("Add a new task now or press enter on an empty line to quit."));
-
+    private static void performAddTaskDialog(Autherization a_autherization, TasksManager a_tasksMgr, Connection a_connection) {
+		a_connection.writeln(String.format("%s, you can now add a new task or quit.", a_autherization.getUsername()));
+		if (a_autherization.allows(AuthMgr.URGENT_TASK)) {
+			a_connection.writeln(String.format("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
+			a_connection.writeln(String.format("This is a normal task"));
+			a_connection.writeln(String.format("!This is an urgent task"));
+			a_connection.writeln(String.format("Add a new task now or press enter on an empty line to quit."));
+		}
+		
 		String newTaskDescription = a_connection.getInput();				
 		if (!newTaskDescription.isEmpty()) {
-			a_tasksMgr.Add(a_username, newTaskDescription);
-			a_connection.writeln(String.format("Task added"));
+			try {
+				a_tasksMgr.Add(a_autherization, newTaskDescription);
+				a_connection.writeln(String.format("Task added"));
+			} catch (AuthMgr.InvalidAuth e) {
+				s_logger.log(Level.WARNING, String.format("User %s tried to perform unautherized operation %s",  a_autherization.getUsername(), e.getRight()));
+				a_connection.writeln(e.getExplanation());
+			}
 		}
-		a_connection.writeln(String.format("Goodbye %s.", a_username));
+		a_connection.writeln(String.format("Goodbye %s.", a_autherization.getUsername()));
     }
 
     private static int extractPort(String[] a_args) {
@@ -88,19 +96,19 @@ final class Main
     	return 8000;
     }
     
-    private static String loadShutdownPasword(Logger a_logger) {
+    private static String loadShutdownPasword() {
     	try {
     		List<String> lines = Files.readAllLines(SHUTDOWN_PWD_FILE);
     		if ((lines.size() != 1) || lines.get(0).strip().isEmpty()) {
     			final String errmsg = "Shutdown password file should have 1, non-empty, line";
-        		a_logger.log(Level.SEVERE, errmsg);
+        		s_logger.log(Level.SEVERE, errmsg);
         		System.err.print(errmsg);
         		System.exit(-51);
     		}
     		return lines.get(0).strip();
     	}
     	catch (IOException ex) {
-    		a_logger.log(Level.SEVERE, "Shutdown password file \"{filename}\" not found or inaccessible", SHUTDOWN_PWD_FILE);
+    		s_logger.log(Level.SEVERE, "Shutdown password file \"{filename}\" not found or inaccessible", SHUTDOWN_PWD_FILE);
     		System.err.print(String.format("Shutdown password file \"%s\" not found or inaccessible", SHUTDOWN_PWD_FILE));
     	}
 		System.exit(-50);
