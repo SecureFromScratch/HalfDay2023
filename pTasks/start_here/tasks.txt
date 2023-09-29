@@ -1,6 +1,0 @@
-Renew office licenses
-!Change admin password
-Install Ubuntu on George's computer
-Remove files from tmp folder of SRV1
-!Add 100GB storage to EMAILSRV
-!Send security report to CTO
