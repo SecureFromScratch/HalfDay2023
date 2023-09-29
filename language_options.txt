@@ -1,0 +1,18 @@
+There is a folder for each language supported:
+
+Folder - Language
+-------------------------------------------------------
+pTasks - python
+ejTasks - Java in Eclipse, or using javac/java manually
+ijTasks - Java in inteliJ
+sharpTasks - C# in VSCODE/VisualStudio
+xxTasks - C++ using gcc/VisualStudio
+
+
+Where to start:
+
+Folder - Program Role
+---------------------
+start_here - server
+client - client
+
