@@ -38,15 +38,19 @@ def display_active_tasks(tasks_mgr, username, connection):
 
 def perform_add_task_dialog(tasks_mgr, username, connection):
     connection.writeln(f"{username}, you can now add a new task or quit.")
-    connection.writeln(f"If you want a task to be marked as urgent, use '!' as the first character. Examples:")
-    connection.writeln(f"This is a normal task")
-    connection.writeln(f"!This is an urgent task")
-    connection.writeln(f"Add a new task now or press enter on an empty line to quit.")
+    if username == "theboss":
+        connection.writeln(f"If you want a task to be marked as urgent, use '!' as the first character. Examples:")
+        connection.writeln(f"This is a normal task")
+        connection.writeln(f"!This is an urgent task")
+        connection.writeln(f"Add a new task now or press enter on an empty line to quit.")
 
     new_task_description = connection.get_input().strip()
     if new_task_description:
-        tasks_mgr.add(username, new_task_description)
-        connection.writeln(f"Task added")
+        if new_task_description.startswith("!") and username != "theboss":
+            connection.writeln(f"You are not autherized to enter an urgent task")
+        else:
+            tasks_mgr.add(username, new_task_description)
+            connection.writeln(f"Task added")
     connection.writeln(f"Goodbye {username}.")
 
 def extract_port(args):
