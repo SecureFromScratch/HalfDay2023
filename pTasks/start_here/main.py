@@ -27,7 +27,7 @@ def run(shutdown_pwd):
                 display_active_tasks(tasks_mgr, authorization, c)
                 perform_add_task_dialog(tasks_mgr, authorization, c)
             except authmgr.InvalidAuth as e:
-                logger.warning(f"user {username} tried to perform unauthorized operation {e.type}")
+                logger.warning(f"user {username} tried to perform unauthorized operation {e.right}")
                 c.writeln(f"{authorization.username}, {e.getExplanation()}")
                 
 def display_active_tasks(tasks_mgr, authorization, connection):

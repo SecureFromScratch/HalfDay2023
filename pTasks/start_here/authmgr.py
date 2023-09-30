@@ -43,7 +43,7 @@ def getAuthorization(username, logger):
                 logger.error(f"Auth line invalid: {line}")
                 allowed = { } # if there's a format error I mistrust EVERYTHING
                 break
-            elif len(parts(0)) == 0 or parts[0] == username:
+            elif len(parts[0]) == 0 or parts[0] == username:
                 allowed[parts[1]] = True
     except Exception as ex:
         logger.warning(f"No auth file {_AUTH_FILENAME} found -or- empty, or an error happened: {ex}")
