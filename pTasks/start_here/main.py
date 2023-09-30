@@ -22,20 +22,24 @@ def run(shutdown_pwd):
                 sys.stderr.write("shutting down\n")
                 return
             logger.info(f"user {username} logged in")
-            authorization = authmgr.getAuthorization(username, logger)
+            
+            ###
+            ### TODO: call AuthMgr.getAuthorization to create authorization object
+            ###
+            authorization = None
             try:
-                display_active_tasks(tasks_mgr, authorization, c)
-                perform_add_task_dialog(tasks_mgr, authorization, c)
+                display_active_tasks(tasks_mgr, username, c)
+                perform_add_task_dialog(tasks_mgr, username, c)
             except authmgr.InvalidAuth as e:
-                logger.warning(f"user {username} tried to perform unauthorized operation {e.right}")
+                logger.warning(f"user {username} tried to perform unauthorized operation {e.type}")
                 c.writeln(f"{authorization.username}, {e.getExplanation()}")
                 
-def display_active_tasks(tasks_mgr, authorization, connection):
-    tasks = tasks_mgr.get_active_tasks(authorization)
+def display_active_tasks(tasks_mgr, username, connection):
+    tasks = tasks_mgr.get_active_tasks(username)
     if not tasks:
-        connection.writeln(f"Hello {authorization.username}, there are currently no tasks that require attention.")
+        connection.writeln(f"Hello {username}, there are currently no tasks that require attention.")
     else:
-        connection.writeln(f"Hello {authorization.username}, the following tasks require attention:")
+        connection.writeln(f"Hello {username}, the following tasks require attention:")
         for task in tasks:
             if task.is_urgent():
                 connection.writeln(f"- URGENT: {task.get_description()}")

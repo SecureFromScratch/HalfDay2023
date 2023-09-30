@@ -11,7 +11,8 @@ class TasksManager:
         self.logger.debug(f"Tasks file is at {self.filepath}")
 
     def add(self, authorization, task_description):
-        if _is_urgent(task_description) and not authorization.allows(authmgr.URGENT_TASK):
+        is_authorized = True ### TODO: Check if user is authorized to perform action
+        if not is_authorized:
             raise authmgr.InvalidAuth(authmgr.URGENT_TASK)
         try:
             with open(self.filepath, "a") as file:

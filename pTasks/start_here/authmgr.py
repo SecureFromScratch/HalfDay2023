@@ -18,6 +18,9 @@ class Authorization:
         self.username = username
         self.allowed = allowed
 
+    def getUsername(self):
+        return self.username
+    
     def allows(self, right):
         return right in self.allowed
 

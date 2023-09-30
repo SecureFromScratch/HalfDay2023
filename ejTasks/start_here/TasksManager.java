@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import Authorization.AuthMgr;
+import Authorization.Authorization;
+import Authorization.InvalidAuth;
+
 final class TasksManager
 {
 	private static final Path FILENAME = Paths.get("tasks.txt");
@@ -29,11 +33,13 @@ final class TasksManager
         a_logger.log(Level.FINE, String.format("Tasks file is at %s", m_filepath));
     }
 
-    public boolean Add(Autherization a_autherization, String a_taskDescription) throws AuthMgr.InvalidAuth 
+    public boolean Add(Authorization a_authorization, String a_taskDescription) throws InvalidAuth 
     {
-    	if (isUrgent(a_taskDescription) && !a_autherization.allows(AuthMgr.URGENT_TASK)) {
-    		throw new AuthMgr.InvalidAuth(AuthMgr.URGENT_TASK);
+    	boolean isAutherized = true; /// TODO: Check if user is authorized to perform action
+    	if (!isAutherized) {
+    		throw new InvalidAuth(AuthMgr.URGENT_TASK);
     	}
+    	
         try {
 			Files.write(m_filepath, Arrays.asList(a_taskDescription), new StandardOpenOption[]{ StandardOpenOption.CREATE, StandardOpenOption.APPEND });
 		} 
@@ -45,8 +51,9 @@ final class TasksManager
         return true;                
     }
 
-    public Task[] GetActiveTasks(Autherization a_autherization)
+    public Task[] GetActiveTasks(Authorization a_autherization) throws InvalidAuth
     {
+    	a_autherization.throwIfNotAllowed(AuthMgr.VIEW_ACTIVE);
         try
         {
             List<String> lines = Files.readAllLines(m_filepath);
