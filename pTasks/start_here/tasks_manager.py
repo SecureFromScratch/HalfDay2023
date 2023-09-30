@@ -10,8 +10,8 @@ class TasksManager:
         self.filepath = TasksManager.FILENAME
         self.logger.debug(f"Tasks file is at {self.filepath}")
 
-    def add(self, autherization, task_description):
-        if _is_urgent(task_description) and not autherization.allows(authmgr.URGENT_TASK):
+    def add(self, authorization, task_description):
+        if _is_urgent(task_description) and not authorization.allows(authmgr.URGENT_TASK):
             raise authmgr.InvalidAuth(authmgr.URGENT_TASK)
         try:
             with open(self.filepath, "a") as file:
@@ -21,7 +21,8 @@ class TasksManager:
             self.logger.error(f"Failed to write task to file. File: {self.filepath}, Message: {task_description}")
             return False
 
-    def get_active_tasks(self, autherization):
+    def get_active_tasks(self, authorization):
+        authorization.throwIfNotAllowed(authmgr.VIEW_ACTIVE)
         try:
             with open(self.filepath, "r") as file:
                 lines = file.readlines()

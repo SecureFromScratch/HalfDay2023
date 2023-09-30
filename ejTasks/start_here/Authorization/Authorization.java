@@ -1,12 +1,12 @@
-
+package Authorization;
 
 import java.util.Set;
 
-public class Autherization {
+public class Authorization {
 	private final String m_username;
 	private final Set<String> m_allowed;
 	
-	public Autherization(String a_username, Set<String> a_allowed) {
+	/*package*/ Authorization(String a_username, Set<String> a_allowed) {
 		m_username = a_username;
 		m_allowed = a_allowed;
 	}
@@ -17,5 +17,11 @@ public class Autherization {
 	
 	public boolean allows(String a_right) {
 		return m_allowed.contains(a_right);
+	}
+	
+	public void throwIfNotAllowed(String a_right) throws InvalidAuth {
+		if (!allows(a_right)) {
+			throw new InvalidAuth(a_right);
+		}
 	}
 }

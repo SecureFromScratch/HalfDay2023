@@ -1,3 +1,5 @@
+package Authorization;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -10,38 +12,20 @@ import java.util.logging.Logger;
 
 public class AuthMgr {
 	public static final String URGENT_TASK = "urgenttask";
+	public static final String VIEW_ACTIVE = "viewactive";
 
-	public static class InvalidAuth extends Exception {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 6073477479259673013L;
-		private static final Map<String, String> INVALID_AUTH_EXPLANATIONS = new HashMap<String, String>();
-		static {
-			INVALID_AUTH_EXPLANATIONS.put(URGENT_TASK, "mark a task as urgent");
-		}
-
-		private String m_right;
-
-		InvalidAuth(String a_right) {
-			m_right = a_right;
-		}
-
-		public String getRight() {
-			return m_right;
-		}
-		
-	    public String getExplanation() {
-	        return "You do not have autherization to " + INVALID_AUTH_EXPLANATIONS.get(m_right);
-	    }
+	/*package*/ static final Map<String, String> INVALID_AUTH_EXPLANATIONS = new HashMap<String, String>();
+	static {
+		INVALID_AUTH_EXPLANATIONS.put(URGENT_TASK, "mark a task as urgent");
+		INVALID_AUTH_EXPLANATIONS.put(VIEW_ACTIVE, "view active tasks");
 	}
-	
-	public static boolean isAllowed(Autherization a_autherization, String a_right) {
+
+	public static boolean isAllowed(Authorization a_autherization, String a_right) {
 	    return a_autherization.allows(a_right);
 	}
 
 	private final static Path AUTH_FILENAME = Path.of("auth.txt");
-	public static Autherization getAutherization(String a_username, Logger a_logger) {
+	public static Authorization getAuthorization(String a_username, Logger a_logger) {
 	    Set<String> allowed = new HashSet<String>(); // Welcome/Allow list according to Easy to Use Safely
 	    try {
             List<String> lines = Files.readAllLines(AUTH_FILENAME);
@@ -64,6 +48,6 @@ public class AuthMgr {
 	    catch (Exception ex) {
 	        a_logger.log(Level.WARNING, String.format("No auth file %s found -or- empty, or an error happened: %s", AUTH_FILENAME, ex.getMessage()));
 	    }
-	    return new Autherization(a_username, allowed);
+	    return new Authorization(a_username, allowed);
 	}
 }

@@ -22,29 +22,29 @@ def run(shutdown_pwd):
                 sys.stderr.write("shutting down\n")
                 return
             logger.info(f"user {username} logged in")
-            autherization = authmgr.getAutherization(username, logger)
+            authorization = authmgr.getAuthorization(username, logger)
             try:
-                display_active_tasks(tasks_mgr, autherization, c)
-                perform_add_task_dialog(tasks_mgr, autherization, c)
+                display_active_tasks(tasks_mgr, authorization, c)
+                perform_add_task_dialog(tasks_mgr, authorization, c)
             except authmgr.InvalidAuth as e:
-                logger.warning(f"user {username} tried to perform {e.type}")
-                c.writeln(f"{autherization.username}, {e.getExplanation()}")
+                logger.warning(f"user {username} tried to perform unauthorized operation {e.type}")
+                c.writeln(f"{authorization.username}, {e.getExplanation()}")
                 
-def display_active_tasks(tasks_mgr, autherization, connection):
-    tasks = tasks_mgr.get_active_tasks(autherization)
+def display_active_tasks(tasks_mgr, authorization, connection):
+    tasks = tasks_mgr.get_active_tasks(authorization)
     if not tasks:
-        connection.writeln(f"Hello {autherization.username}, there are currently no tasks that require attention.")
+        connection.writeln(f"Hello {authorization.username}, there are currently no tasks that require attention.")
     else:
-        connection.writeln(f"Hello {autherization.username}, the following tasks require attention:")
+        connection.writeln(f"Hello {authorization.username}, the following tasks require attention:")
         for task in tasks:
             if task.is_urgent():
                 connection.writeln(f"- URGENT: {task.get_description()}")
             else:
                 connection.writeln(f"- {task.get_description()}")
 
-def perform_add_task_dialog(tasks_mgr, autherization, connection):
-    connection.writeln(f"{autherization.username}, you can now add a new task or quit.")
-    if authmgr.isAllowed(autherization, authmgr.URGENT_TASK):
+def perform_add_task_dialog(tasks_mgr, authorization, connection):
+    connection.writeln(f"{authorization.username}, you can now add a new task or quit.")
+    if authmgr.isAllowed(authorization, authmgr.URGENT_TASK):
         connection.writeln(f"If you want a task to be marked as urgent, use '!' as the first character. Examples:")
         connection.writeln(f"This is a normal task")
         connection.writeln(f"!This is an urgent task")
@@ -52,9 +52,9 @@ def perform_add_task_dialog(tasks_mgr, autherization, connection):
 
     new_task_description = connection.get_input().strip()
     if new_task_description:
-        tasks_mgr.add(autherization, new_task_description)
+        tasks_mgr.add(authorization, new_task_description)
         connection.writeln(f"Task added")
-    connection.writeln(f"Goodbye {autherization.username}.")
+    connection.writeln(f"Goodbye {authorization.username}.")
 
 def extract_port(args):
     sys.stderr.write(f"USAGE: {args[0]} [port]\n")
