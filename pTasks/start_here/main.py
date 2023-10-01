@@ -20,7 +20,6 @@ def run(shutdown_pwd):
             if username == shutdown_pwd:
                 print("shutting down")
                 return
-            logger.info(f"user {username} logged in")
             display_active_tasks(tasks_mgr, username, c)
             perform_add_task_dialog(tasks_mgr, username, c)
 
