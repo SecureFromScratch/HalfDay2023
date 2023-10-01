@@ -21,7 +21,6 @@ def run(shutdown_pwd):
             if username == shutdown_pwd:
                 sys.stderr.write("shutting down\n")
                 return
-            logger.info(f"user {username} logged in")
             
             ###
             ### TODO: call AuthMgr.getAuthorization to create authorization object
@@ -31,7 +30,6 @@ def run(shutdown_pwd):
                 display_active_tasks(tasks_mgr, username, c)
                 perform_add_task_dialog(tasks_mgr, username, c)
             except authmgr.InvalidAuth as e:
-                logger.warning(f"user {username} tried to perform unauthorized operation {e.type}")
                 c.writeln(f"{authorization.username}, {e.getExplanation()}")
                 
 def display_active_tasks(tasks_mgr, username, connection):
