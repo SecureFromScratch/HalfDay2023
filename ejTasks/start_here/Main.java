@@ -46,12 +46,13 @@ final class Main
 		}
 		else {
 			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
-			for (Task t : tasks) {
+	        a_connection.writeln("URGENT? TASK");
+        	for (Task t : tasks) {
 				if (t.isUrgent()) {
-					a_connection.writeln(String.format("- URGENT: %s", t.getDescription()));
+					a_connection.writeln(String.format("YES     %s", t.getDescription()));
 				}
 				else {
-					a_connection.writeln(String.format("- %s", t.getDescription()));
+					a_connection.writeln(String.format("NO      %s", t.getDescription()));
 				}
 			}
 		}
