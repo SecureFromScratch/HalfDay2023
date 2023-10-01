@@ -36,11 +36,12 @@ def display_active_tasks(tasks_mgr, authorization, connection):
         connection.writeln(f"Hello {authorization.username}, there are currently no tasks that require attention.")
     else:
         connection.writeln(f"Hello {authorization.username}, the following tasks require attention:")
+        connection.writeln(f"URGENT? TASK")
         for task in tasks:
             if task.is_urgent():
-                connection.writeln(f"- URGENT: {task.get_description()}")
+                connection.writeln(f"YES     {task.get_description()}")
             else:
-                connection.writeln(f"- {task.get_description()}")
+                connection.writeln(f"NO      {task.get_description()}")
 
 def perform_add_task_dialog(tasks_mgr, authorization, connection):
     connection.writeln(f"{authorization.username}, you can now add a new task or quit.")
