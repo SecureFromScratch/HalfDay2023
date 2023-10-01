@@ -73,7 +73,6 @@ final class Main
 				a_tasksMgr.Add(a_authorization, newTaskDescription);
 				a_connection.writeln(String.format("Task added"));
 			} catch (InvalidAuth e) {
-				s_logger.log(Level.WARNING, String.format("User %s tried to perform unautherized operation %s",  a_authorization.getUsername(), e.getRight()));
 				a_connection.writeln(e.getExplanation());
 			}
 		}
