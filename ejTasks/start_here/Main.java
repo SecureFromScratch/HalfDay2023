@@ -2,6 +2,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import Authorization.AuthMgr;
+import Authorization.Authorization;
+import Authorization.InvalidAuth;
 import SimpleServer.SimpleServer;
 import SimpleServer.SimpleServer.Connection;
 
@@ -28,21 +31,21 @@ final class Main
 					s_logger.log(Level.INFO, "Received shutdown");
 					break;
 				}
-				final Autherization autherization = AuthMgr.getAutherization(username, s_logger);
-				displayActiveTasks(autherization, tasksMgr, c);
-				performAddTaskDialog(autherization, tasksMgr, c);
+				final Authorization authorization = AuthMgr.getAuthorization(username, s_logger);
+				displayActiveTasks(authorization, tasksMgr, c);
+				performAddTaskDialog(authorization, tasksMgr, c);
 			}
 		}
 		
     }
 
-    private static void displayActiveTasks(Autherization a_autherization, TasksManager a_tasksMgr, Connection a_connection) {
-		Task[] tasks = a_tasksMgr.GetActiveTasks(a_autherization);
+    private static void displayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, Connection a_connection) {
+		Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
 		if (tasks.length == 0) {
-			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_autherization.getUsername()));				
+			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_authorization.getUsername()));				
 		}
 		else {
-			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_autherization.getUsername()));
+			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
 			for (Task t : tasks) {
 				if (t.isUrgent()) {
 					a_connection.writeln(String.format("- URGENT: %s", t.getDescription()));
@@ -54,9 +57,9 @@ final class Main
 		}
     }
     
-    private static void performAddTaskDialog(Autherization a_autherization, TasksManager a_tasksMgr, Connection a_connection) {
-		a_connection.writeln(String.format("%s, you can now add a new task or quit.", a_autherization.getUsername()));
-		if (a_autherization.allows(AuthMgr.URGENT_TASK)) {
+    private static void performAddTaskDialog(Authorization a_authorization, TasksManager a_tasksMgr, Connection a_connection) {
+		a_connection.writeln(String.format("%s, you can now add a new task or quit.", a_authorization.getUsername()));
+		if (a_authorization.allows(AuthMgr.URGENT_TASK)) {
 			a_connection.writeln(String.format("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
 			a_connection.writeln(String.format("This is a normal task"));
 			a_connection.writeln(String.format("!This is an urgent task"));
@@ -66,14 +69,14 @@ final class Main
 		String newTaskDescription = a_connection.getInput();				
 		if (!newTaskDescription.isEmpty()) {
 			try {
-				a_tasksMgr.Add(a_autherization, newTaskDescription);
+				a_tasksMgr.Add(a_authorization, newTaskDescription);
 				a_connection.writeln(String.format("Task added"));
-			} catch (AuthMgr.InvalidAuth e) {
-				s_logger.log(Level.WARNING, String.format("User %s tried to perform unautherized operation %s",  a_autherization.getUsername(), e.getRight()));
+			} catch (InvalidAuth e) {
+				s_logger.log(Level.WARNING, String.format("User %s tried to perform unautherized operation %s",  a_authorization.getUsername(), e.getRight()));
 				a_connection.writeln(e.getExplanation());
 			}
 		}
-		a_connection.writeln(String.format("Goodbye %s.", a_autherization.getUsername()));
+		a_connection.writeln(String.format("Goodbye %s.", a_authorization.getUsername()));
     }
 
     private static int extractPort(String[] a_args) {
