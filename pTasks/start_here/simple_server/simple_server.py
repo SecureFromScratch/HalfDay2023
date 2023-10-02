@@ -1,5 +1,5 @@
 import socket
-import logging
+import extralogging as logging
 import sys
 
 class SimpleServer:

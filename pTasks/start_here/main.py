@@ -1,14 +1,8 @@
-import logging
+import extralogging as logging
 import sys
 from simple_server import SimpleServer
 from tasks_manager import TasksManager
 import authmgr
-
-logging.basicConfig(filename='tasks.log',
-				filemode='a',
-				format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-				datefmt='%H:%M:%S',
-				level=logging.DEBUG)
 
 def run(shutdown_pwd):
     logger = logging.getLogger("main")
@@ -21,15 +15,19 @@ def run(shutdown_pwd):
             if username == shutdown_pwd:
                 sys.stderr.write("shutting down\n")
                 return
-            logger.info(f"user {username} logged in")
-            authorization = authmgr.getAuthorization(username, logger)
-            try:
-                display_active_tasks(tasks_mgr, authorization, c)
-                perform_add_task_dialog(tasks_mgr, authorization, c)
-            except authmgr.InvalidAuth as e:
-                logger.warning(f"user {username} tried to perform unauthorized operation {e.right}")
-                c.writeln(f"{authorization.username}, {e.getExplanation()}")
-                
+            handle_user(logger, tasks_mgr, c, username)
+
+def handle_user(logger, tasks_mgr, c, username):
+    with logging.UsernameScope(username):
+        logger.info(f"logged in") # username is added to log automatically
+        authorization = authmgr.getAuthorization(username, logger)
+        try:
+            display_active_tasks(tasks_mgr, authorization, c)
+            perform_add_task_dialog(tasks_mgr, authorization, c)
+        except authmgr.InvalidAuth as e:
+            logger.warning(f"tried to perform unauthorized operation {e.right}")
+            c.writeln(f"{authorization.username}, {e.getExplanation()}")
+
 def display_active_tasks(tasks_mgr, authorization, connection):
     tasks = tasks_mgr.get_active_tasks(authorization)
     if not tasks:
