@@ -1,6 +1,7 @@
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import Authorization.AuthMgr;
 import Authorization.Authorization;
@@ -31,9 +32,12 @@ final class Main
 					s_logger.log(Level.INFO, "Received shutdown");
 					break;
 				}
-				final Authorization autherization = AuthMgr.getAuthorization(username, s_logger);
-				displayActiveTasks(autherization, tasksMgr, c);
-				performAddTaskDialog(autherization, tasksMgr, c);
+				try (UsernameLoggingScope scope = new UsernameLoggingScope(s_logger, username)) {
+					s_logger.log(Level.INFO, "Logged in"); // username added automatically
+					final Authorization autherization = AuthMgr.getAuthorization(username, s_logger);
+					displayActiveTasks(autherization, tasksMgr, c);
+					performAddTaskDialog(autherization, tasksMgr, c);
+				}
 			}
 		}
 		
@@ -73,7 +77,8 @@ final class Main
 				a_tasksMgr.Add(a_authorization, newTaskDescription);
 				a_connection.writeln(String.format("Task added"));
 			} catch (InvalidAuth e) {
-				s_logger.log(Level.WARNING, String.format("User %s tried to perform unautherized operation %s",  a_authorization.getUsername(), e.getRight()));
+				// On next line username added automatically by logger
+				s_logger.log(Level.WARNING, String.format("Tried to perform unautherized operation %s",  e.getRight()));
 				a_connection.writeln(e.getExplanation());
 			}
 		}
