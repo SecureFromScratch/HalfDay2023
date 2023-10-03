@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import Pii.Pii;
+
 public class AuthMgr {
 	public static final String URGENT_TASK = "urgenttask";
 	public static final String VIEW_ACTIVE = "viewactive";
@@ -25,7 +27,7 @@ public class AuthMgr {
 	}
 
 	private final static Path AUTH_FILENAME = Path.of("auth.txt");
-	public static Authorization getAuthorization(String a_username, Logger a_logger) {
+	public static Authorization getAuthorization(Pii<String> a_username, Logger a_logger) {
 	    Set<String> allowed = new HashSet<String>(); // Welcome/Allow list according to Easy to Use Safely
 	    try {
             List<String> lines = Files.readAllLines(AUTH_FILENAME);
@@ -40,7 +42,7 @@ public class AuthMgr {
 	                allowed.clear(); // if there's a format error I mistrust EVERYTHING
 	                break;
 	            }
-	            else if (parts[0].equals(a_username)) {
+	            else if (parts[0].equals(a_username.exposeUnsecured())) {
 	                allowed.add(parts[1]);
 	            }
 	        }

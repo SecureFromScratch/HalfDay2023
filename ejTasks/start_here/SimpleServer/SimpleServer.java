@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import Pii.PiiConcat;
+
 public class SimpleServer implements Closeable {
 	private int m_port;
 	private Logger m_logger;
@@ -52,21 +54,21 @@ public class SimpleServer implements Closeable {
 	            return line;
 			}
 			catch (IOException ex) {
-				m_logger.warning(String.format("Socket error: ", ex.toString()));
+				m_logger.warning(String.format("Socket error: ", ex.getMessage()));
 				close();
 				return "";
 			}
 		}
 
-		public void write(String a_text) {
-			m_logger.log(Level.FINEST, "Server is writing " + a_text);
-			m_writer.print(a_text);
+		public void write(PiiConcat a_text) {
+			m_logger.log(Level.FINEST, "Server is writing " + a_text.toLoggable());
+			m_writer.print(a_text.exposeUnsecured());
 			m_writer.flush();
 		}
 
-		public void writeln(String a_text) {
-			m_logger.log(Level.FINEST, "Server is writing " + a_text);
-			m_writer.println(a_text);
+		public void writeln(PiiConcat a_text) {
+			m_logger.log(Level.FINEST, "Server is writing " + a_text.toLoggable());
+			m_writer.println(a_text.exposeUnsecured());
 			m_writer.flush();
 		}
 

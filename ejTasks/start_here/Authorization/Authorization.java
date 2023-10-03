@@ -2,16 +2,18 @@ package Authorization;
 
 import java.util.Set;
 
+import Pii.Pii;
+
 public class Authorization {
-	private final String m_username;
+	private final Pii<String> m_username;
 	private final Set<String> m_allowed;
 	
-	/*package*/ Authorization(String a_username, Set<String> a_allowed) {
+	/*package*/ Authorization(Pii<String> a_username, Set<String> a_allowed) {
 		m_username = a_username;
 		m_allowed = a_allowed;
 	}
 	
-	public String getUsername() {
+	public Pii<String> getUsername() {
 		return m_username;
 	}
 	

@@ -4,10 +4,12 @@ import java.util.Optional;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
+import Pii.Pii;
+
 public class UsernameLoggingScope implements Closeable {
 	public final Optional<ExtrasFileHandler> m_extrasHandler;
 	
-	public UsernameLoggingScope(Logger a_logger, String a_username) {
+	public UsernameLoggingScope(Logger a_logger, Pii<String> a_username) {
 		do {
 			for (Handler h : a_logger.getHandlers()) {
 				if (h instanceof ExtrasFileHandler) {

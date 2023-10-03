@@ -6,6 +6,9 @@ import java.util.logging.SimpleFormatter;
 import Authorization.AuthMgr;
 import Authorization.Authorization;
 import Authorization.InvalidAuth;
+import Pii.Pii;
+import Pii.PiiConcat;
+import Pii.ObscuredPii;
 import SimpleServer.SimpleServer;
 import SimpleServer.SimpleServer.Connection;
 
@@ -27,7 +30,7 @@ final class Main
 		TasksManager tasksMgr = new TasksManager(s_logger); 
 		while (true) {
 			try (Connection c = server.waitForConnection()) {
-				String username = c.getInput();
+				Pii<String> username = new ObscuredPii<String>(c.getInput(), Main::obscureUsername);
 				if (username.equals(shutdownPassword)) {
 					s_logger.log(Level.INFO, "Received shutdown");
 					break;
@@ -43,46 +46,52 @@ final class Main
 		
     }
 
+    private static String obscureUsername(String a_username) {
+    	return a_username.isEmpty() 
+    			? ""
+    			: a_username.charAt(0) + "***" + a_username.charAt(a_username.length() - 1);
+    }
+
     private static void displayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, Connection a_connection) {
 		Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
 		if (tasks.length == 0) {
-			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_authorization.getUsername()));				
+			a_connection.writeln(new PiiConcat("Hello ", a_authorization.getUsername(), ", there are currently no tasks that require attention."));		
 		}
 		else {
-			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
-	        a_connection.writeln("URGENT? TASK");
+			a_connection.writeln(new PiiConcat("Hello ", a_authorization.getUsername(), ", the following tasks require attention:"));
+	        a_connection.writeln(new PiiConcat("URGENT? TASK"));
         	for (Task t : tasks) {
 				if (t.isUrgent()) {
-					a_connection.writeln(String.format("YES     %s", t.getDescription()));
+					a_connection.writeln(new PiiConcat("YES     ", t.getDescription()));
 				}
 				else {
-					a_connection.writeln(String.format("NO      %s", t.getDescription()));
+					a_connection.writeln(new PiiConcat("NO      ", t.getDescription()));
 				}
 			}
 		}
     }
     
     private static void performAddTaskDialog(Authorization a_authorization, TasksManager a_tasksMgr, Connection a_connection) {
-		a_connection.writeln(String.format("%s, you can now add a new task or quit.", a_authorization.getUsername()));
+		a_connection.writeln(new PiiConcat(a_authorization.getUsername(), ", you can now add a new task or quit."));
 		if (a_authorization.allows(AuthMgr.URGENT_TASK)) {
-			a_connection.writeln(String.format("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
-			a_connection.writeln(String.format("This is a normal task"));
-			a_connection.writeln(String.format("!This is an urgent task"));
-			a_connection.writeln(String.format("Add a new task now or press enter on an empty line to quit."));
+			a_connection.writeln(new PiiConcat("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
+			a_connection.writeln(new PiiConcat("This is a normal task"));
+			a_connection.writeln(new PiiConcat("!This is an urgent task"));
+			a_connection.writeln(new PiiConcat("Add a new task now or press enter on an empty line to quit."));
 		}
 		
 		String newTaskDescription = a_connection.getInput();				
 		if (!newTaskDescription.isEmpty()) {
 			try {
 				a_tasksMgr.Add(a_authorization, newTaskDescription);
-				a_connection.writeln(String.format("Task added"));
+				a_connection.writeln(new PiiConcat("Task added"));
 			} catch (InvalidAuth e) {
 				// On next line username added automatically by logger
 				s_logger.log(Level.WARNING, String.format("Tried to perform unautherized operation %s",  e.getRight()));
-				a_connection.writeln(e.getExplanation());
+				a_connection.writeln(new PiiConcat(e.getExplanation()));
 			}
 		}
-		a_connection.writeln(String.format("Goodbye %s.", a_authorization.getUsername()));
+		a_connection.writeln(new PiiConcat("Goodbye ", a_authorization.getUsername(), "."));
     }
 
     private static int extractPort(String[] a_args) {
