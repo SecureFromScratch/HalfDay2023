@@ -50,6 +50,7 @@ class SimpleServer:
         
         def __exit__(self, exc_type, exc_value, traceback):
             self.close()
+            return True
 
         def close(self):
             if self.reader:

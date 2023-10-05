@@ -1,8 +1,12 @@
 import extralogging as logging
 import sys
+from pii.pii import ObscuredPii
 from simple_server import SimpleServer
 from tasks_manager import TasksManager
 import authmgr
+
+def obscure_username(username):
+    return "" if len(username) == 0 else username[0] + "***" + username[len(username) - 1]
 
 def run(shutdown_pwd):
     logger = logging.getLogger("main")
@@ -11,7 +15,7 @@ def run(shutdown_pwd):
     while True:
         logger.debug("waiting for connection")
         with server.wait_for_connection() as c:
-            username = c.get_input()
+            username = ObscuredPii(c.get_input(), obscure_username)
             if username == shutdown_pwd:
                 sys.stderr.write("shutting down\n")
                 return

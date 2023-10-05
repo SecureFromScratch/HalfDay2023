@@ -14,8 +14,8 @@ class InvalidAuth(Exception):
         return getNoAuthDescription(self.right)
     
 class Authorization:
-    def __init__(self, username, allowed):
-        self.username = username
+    def __init__(self, username_pii, allowed):
+        self.username = username_pii
         self.allowed = allowed
 
     def allows(self, right):
@@ -29,7 +29,10 @@ def isAllowed(authorization, right):
     return authorization.allows(right)
 
 _AUTH_FILENAME="auth.txt"
-def getAuthorization(username, logger):
+def getAuthorization(username_pii, logger):
+    if username_pii is not Pii:
+        raise TypeError(username_pii)
+
     allowed = { } # Welcome/Allow list according to Easy to Use Safely
     try:
         with open(_AUTH_FILENAME, "r") as file:
@@ -43,13 +46,13 @@ def getAuthorization(username, logger):
                 logger.error(f"Auth line invalid: {line}")
                 allowed = { } # if there's a format error I mistrust EVERYTHING
                 break
-            elif len(parts[0]) == 0 or parts[0] == username:
+            elif len(parts[0]) == 0 or parts[0] == username_pii.expose_unsecured():
                 allowed[parts[1]] = True
     except Exception as ex:
         logger.warning(f"No auth file {_AUTH_FILENAME} found -or- empty, or an error happened: {ex}")
         logger.warning(f"Each line in auth file is of the form [username]:<right>, i.e. theboss:urgenttask")
         logger.warning(f"If the username is left empty the right is given to all users, i.e. :viewactive")
-    return Authorization(username, allowed)
+    return Authorization(username_pii, allowed)
 
 def getNoAuthDescription(right):
     return "You do not have authorization to " + _INVALID_AUTH_EXPLANATIONS[right]

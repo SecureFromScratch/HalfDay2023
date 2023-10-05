@@ -20,11 +20,6 @@ public class ObscuredPii<TValue> extends Pii<TValue> {
     }
 
     @Override
-    public String toString() 
-    {
-        return m_altIdentifier;
-    }
-
     public String toLoggable()
     {
         return m_altIdentifier;

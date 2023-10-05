@@ -1,20 +1,20 @@
 import logging as baselogging
 
 class _UsernameHolder:
-	username = None
+	username_pii = None
 
 	def __str__(self):
-		return self.username if self.username else "<no user>"
+		return self.username_pii.to_loggable() if self.username_pii else "<no user>"
 
 class UsernameScope:
-	def __init__(self, username):
-		_usernameHolder.username = username
+	def __init__(self, username_pii):
+		_usernameHolder.username_pii = username_pii
 
 	def __enter__(self):
 		pass
 
 	def __exit__(self, exc_type, exc_value, traceback):
-		_usernameHolder.username = None		
+		_usernameHolder.username_pii = None		
 		return True
 
 _usernameHolder = _UsernameHolder()
