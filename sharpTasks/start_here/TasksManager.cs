@@ -42,7 +42,7 @@ namespace TasksServer
                 var tasks = new List<Task>(lines.Length);
                 foreach (var line in lines)
                 {
-                    bool isUrgent = line.StartsWith("!");
+                    bool isUrgent = IsUrgent(line);
                     string msg = isUrgent ? line.Substring(1) : line;
                     var task = new Task("unknown", isUrgent, msg);
                     tasks.Add(task);
@@ -55,6 +55,10 @@ namespace TasksServer
                 m_logger.LogWarning("No active tasks found -or- an error happened: {ex}", ex.Message);
                 return Array.Empty<Task>();
             }
+        }
+
+        private static bool IsUrgent(string a_taskDesc) {
+            return a_taskDesc.StartsWith('!');
         }
     }
 }
