@@ -1,0 +1,7 @@
+*.log
+*.txt
+Debug
+Release
+X64
+.vs
+
