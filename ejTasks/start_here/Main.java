@@ -31,30 +31,34 @@ final class Main
 					s_logger.log(Level.INFO, "Received shutdown");
 					break;
 				}
-				final Authorization autherization = AuthMgr.getAuthorization(username, s_logger);
-				displayActiveTasks(autherization, tasksMgr, c);
-				performAddTaskDialog(autherization, tasksMgr, c);
+				final Authorization authorization = AuthMgr.getAuthorization(username, s_logger);
+				displayActiveTasks(authorization, tasksMgr, c);
+				performAddTaskDialog(authorization, tasksMgr, c);
 			}
 		}
 		
     }
 
     private static void displayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, Connection a_connection) {
-		Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
-		if (tasks.length == 0) {
-			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_authorization.getUsername()));				
-		}
-		else {
-			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
-	        a_connection.writeln("URGENT? TASK");
-        	for (Task t : tasks) {
-				if (t.isUrgent()) {
-					a_connection.writeln(String.format("YES     %s", t.getDescription()));
-				}
-				else {
-					a_connection.writeln(String.format("NO      %s", t.getDescription()));
+    	try {
+			Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
+			if (tasks.length == 0) {
+				a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_authorization.getUsername()));				
+			}
+			else {
+				a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
+		        a_connection.writeln("URGENT? TASK");
+	        	for (Task t : tasks) {
+					if (t.isUrgent()) {
+						a_connection.writeln(String.format("YES     %s", t.getDescription()));
+					}
+					else {
+						a_connection.writeln(String.format("NO      %s", t.getDescription()));
+					}
 				}
 			}
+		} catch (InvalidAuth e) {
+			a_connection.writeln(e.getExplanation());
 		}
     }
     
@@ -73,7 +77,7 @@ final class Main
 				a_tasksMgr.Add(a_authorization, newTaskDescription);
 				a_connection.writeln(String.format("Task added"));
 			} catch (InvalidAuth e) {
-				s_logger.log(Level.WARNING, String.format("User %s tried to perform unautherized operation %s",  a_authorization.getUsername(), e.getRight()));
+				s_logger.log(Level.WARNING, String.format("User %s tried to perform unauthorized operation %s",  a_authorization.getUsername(), e.getRight()));
 				a_connection.writeln(e.getExplanation());
 			}
 		}

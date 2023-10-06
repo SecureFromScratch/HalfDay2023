@@ -33,9 +33,9 @@ final class TasksManager
         a_logger.log(Level.FINE, String.format("Tasks file is at %s", m_filepath));
     }
 
-    public boolean Add(Authorization a_autherization, String a_taskDescription) throws InvalidAuth 
+    public boolean Add(Authorization a_authorization, String a_taskDescription) throws InvalidAuth 
     {
-    	if (isUrgent(a_taskDescription) && !a_autherization.allows(AuthMgr.URGENT_TASK)) {
+    	if (isUrgent(a_taskDescription) && !a_authorization.allows(AuthMgr.URGENT_TASK)) {
     		throw new InvalidAuth(AuthMgr.URGENT_TASK);
     	}
         try {
@@ -49,8 +49,10 @@ final class TasksManager
         return true;                
     }
 
-    public Task[] GetActiveTasks(Authorization a_autherization)
+    public Task[] GetActiveTasks(Authorization a_authorization) throws InvalidAuth
     {
+    	a_authorization.throwIfNotAllowed(AuthMgr.VIEW_ACTIVE);
+    	
         try
         {
             List<String> lines = Files.readAllLines(m_filepath);
