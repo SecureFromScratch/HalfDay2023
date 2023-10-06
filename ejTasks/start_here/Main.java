@@ -40,20 +40,24 @@ final class Main
     }
 
     private static void displayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, Connection a_connection) {
-		Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
-		if (tasks.length == 0) {
-			a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_authorization.getUsername()));				
-		}
-		else {
-			a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
-			for (Task t : tasks) {
-				if (t.isUrgent()) {
-					a_connection.writeln(String.format("- URGENT: %s", t.getDescription()));
-				}
-				else {
-					a_connection.writeln(String.format("- %s", t.getDescription()));
+		try {
+			Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
+			if (tasks.length == 0) {
+				a_connection.writeln(String.format("Hello %s, there are currently no tasks that require attention.", a_authorization.getUsername()));				
+			}
+			else {
+				a_connection.writeln(String.format("Hello %s, the following tasks require attention:", a_authorization.getUsername()));
+				for (Task t : tasks) {
+					if (t.isUrgent()) {
+						a_connection.writeln(String.format("- URGENT: %s", t.getDescription()));
+					}
+					else {
+						a_connection.writeln(String.format("- %s", t.getDescription()));
+					}
 				}
 			}
+		} catch (InvalidAuth e) {
+			a_connection.writeln(e.getExplanation());
 		}
     }
     

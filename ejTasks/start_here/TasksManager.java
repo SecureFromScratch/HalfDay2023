@@ -49,8 +49,9 @@ final class TasksManager
         return true;                
     }
 
-    public Task[] GetActiveTasks(Authorization a_authorization)
+    public Task[] GetActiveTasks(Authorization a_authorization) throws InvalidAuth
     {
+    	a_authorization.throwIfNotAllowed(AuthMgr.VIEW_ACTIVE);
         try
         {
             List<String> lines = Files.readAllLines(m_filepath);
