@@ -58,6 +58,7 @@ final class Main
 				}
 			}
 		} catch (InvalidAuth e) {
+			s_logger.log(Level.WARNING, String.format("User %s tried to perform unauthorized operation %s",  a_authorization.getUsername(), e.getRight()));
 			a_connection.writeln(e.getExplanation());
 		}
     }
