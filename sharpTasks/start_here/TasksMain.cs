@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SimpleServer;
+using AuthorizationNS;
+using PiiLib;
 
 namespace TasksServer
 {
@@ -42,58 +44,76 @@ namespace TasksServer
             {
                 using (SimpleServer.SimpleServer.Connection connection = server.WaitForConnection())
                 {
-                    string username = connection.GetInput();
-                    if (username.Equals(shutdownPassword))
+                    ObscuredPii<string> username = 
+                        new ObscuredPii<string>(connection.GetInput(), ObscureUsername);
+                    if (username.ExposeUnsecured().Equals(shutdownPassword))
                     {
                         m_logger.LogInformation("Received shutdown");
                         break;
                     }
 
-                    DisplayActiveTasks(username, m_tasksManager, connection);
-                    PerformAddTaskDialog(username, m_tasksManager, connection);
+				    Authorization authorization = AuthMgr.GetAuthorization(username, m_logger);
+                    DisplayActiveTasks(authorization, m_tasksManager, connection);
+                    PerformAddTaskDialog(authorization, m_tasksManager, connection);
                 }
             }
         }
 
-        private void DisplayActiveTasks(string a_username, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
+        private void DisplayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
         {
-            Task[] tasks = a_tasksMgr.GetActiveTasks(a_username);
-            if (tasks.Length == 0)
+            try 
             {
-                a_connection.WriteLine($"Hello {a_username}, there are currently no tasks that require attention.");
-            }
-            else
-            {
-                a_connection.WriteLine($"Hello {a_username}, the following tasks require attention:");
-                foreach (Task t in tasks)
+                Task[] tasks = a_tasksMgr.GetActiveTasks(a_authorization);
+                if (tasks.Length == 0)
                 {
-                    if (t.IsUrgent)
+                    a_connection.WriteLine(new PiiConcat("Hello ", a_authorization.Username, ", there are currently no tasks that require attention."));
+                }
+                else
+                {
+                    a_connection.WriteLine(new PiiConcat("Hello ", a_authorization.Username, " , the following tasks require attention:"));
+	                a_connection.WriteLine(new PiiConcat("URGENT? TASK"));
+                    foreach (Task t in tasks)
                     {
-                        a_connection.WriteLine($"- URGENT: {t.Description}");
-                    }
-                    else
-                    {
-                        a_connection.WriteLine($"- {t.Description}");
+                        if (t.IsUrgent)
+                        {
+                            a_connection.WriteLine(new PiiConcat($"YES     {t.Description}"));
+                        }
+                        else
+                        {
+                            a_connection.WriteLine(new PiiConcat($"NO      {t.Description}"));
+                        }
                     }
                 }
+            } 
+            catch (InvalidAuthException e) {
+				m_logger.LogWarning("User {username} tried to perform unauthorized operation {right}",  a_authorization.Username, e.Right);
+                a_connection.WriteLine(new PiiConcat(e.Explanation));
             }
         }
 
-        private void PerformAddTaskDialog(string a_username, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
+        private void PerformAddTaskDialog(Authorization a_authorization, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
         {
-            a_connection.WriteLine($"{a_username}, you can now add a new task or quit.");
-            a_connection.WriteLine("If you want a task to be marked as urgent, use '!' as the first character. Examples:");
-            a_connection.WriteLine("This is a normal task");
-            a_connection.WriteLine("!This is an urgent task");
-            a_connection.WriteLine("Add a new task now or press enter on an empty line to quit.");
+            a_connection.WriteLine(new PiiConcat("", a_authorization.Username, ", you can now add a new task or quit."));
+            if (a_authorization.Allows(AuthMgr.URGENT_TASK)) {
+                a_connection.WriteLine(new PiiConcat("If you want a task to be marked as urgent, use '!' as the first character. Examples:"));
+                a_connection.WriteLine(new PiiConcat("This is a normal task"));
+                a_connection.WriteLine(new PiiConcat("!This is an urgent task"));
+                a_connection.WriteLine(new PiiConcat("Add a new task now or press enter on an empty line to quit."));
+            }
 
             string newTaskDescription = a_connection.GetInput();
             if (!string.IsNullOrEmpty(newTaskDescription))
             {
-                a_tasksMgr.Add(a_username, newTaskDescription);
-                a_connection.WriteLine("Task added");
+                try {
+                    a_tasksMgr.Add(a_authorization, newTaskDescription);
+                    a_connection.WriteLine(new PiiConcat("Task added"));
+                } 
+                catch (InvalidAuthException e) {
+    				m_logger.LogWarning("User {username} tried to perform unauthorized operation {right}",  a_authorization.Username, e.Right);
+                    a_connection.WriteLine(new PiiConcat(e.Explanation));
+                }
             }
-            a_connection.WriteLine($"Goodbye {a_username}.");
+            a_connection.WriteLine(new PiiConcat("Goodbye ", a_authorization.Username, "."));
         }
 
         private static int ExtractPort(string[] args)
@@ -142,5 +162,10 @@ namespace TasksServer
             Environment.Exit(-50);
             return ""; // to quiet down the compiler
         }
+
+        private static string ObscureUsername(string a_username) 
+        {
+            return a_username.Length == 0 ? "" : a_username[0] + "***" + a_username[a_username.Length - 1];
+        } 
     }
 }

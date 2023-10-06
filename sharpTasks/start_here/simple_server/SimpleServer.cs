@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using PiiLib;
 using Utils;
 
 namespace SimpleServer
@@ -63,17 +64,17 @@ namespace SimpleServer
                 }
             }
 
-            public void Write(string text)
+            public void Write(PiiConcat text)
             {
                 m_server.m_logger.LogDebug("Server is writing {text}", text);
-                m_writer.Write(text);
+                m_writer.Write(text.ExposeUnsecured());
                 m_writer.Flush();
             }
 
-            public void WriteLine(string text)
+            public void WriteLine(PiiConcat text)
             {
                 m_server.m_logger.LogDebug("Server is writing {text}", text);
-                m_writer.WriteLine(text);
+                m_writer.WriteLine(text.ExposeUnsecured());
                 m_writer.Flush();
             }
 

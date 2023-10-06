@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using AuthorizationNS;
 using Microsoft.Extensions.Logging;
+using Authorization = AuthorizationNS.Authorization;
 
 namespace TasksServer
 {
@@ -19,9 +18,11 @@ namespace TasksServer
             m_logger.LogDebug("Tasks file is at {m_filepath}", m_filepath);
         }
 
-        public bool Add(string a_creator, string a_taskDescription)
+        public bool Add(Authorization a_authorization, string a_taskDescription)
         {
-            // NOTE: creator is ignored for now
+            if (IsUrgent(a_taskDescription) && !a_authorization.Allows(AuthMgr.URGENT_TASK)) {
+                throw new InvalidAuthException(AuthMgr.URGENT_TASK);
+            }
             try
             {
                 File.AppendAllLines(m_filepath, new[] { a_taskDescription });
@@ -34,8 +35,10 @@ namespace TasksServer
             }
         }
 
-        public Task[] GetActiveTasks(string a_username)
+        public Task[] GetActiveTasks(Authorization a_authorization)
         {
+    	    a_authorization.ThrowIfNotAllowed(AuthMgr.VIEW_ACTIVE);
+
             try
             {
                 string[] lines = File.ReadAllLines(m_filepath);
