@@ -57,7 +57,7 @@ namespace TasksServer
             }
         }
 
-        private static void DisplayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
+        private void DisplayActiveTasks(Authorization a_authorization, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
         {
             try 
             {
@@ -87,7 +87,7 @@ namespace TasksServer
             }
         }
 
-        private static void PerformAddTaskDialog(Authorization a_authorization, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
+        private void PerformAddTaskDialog(Authorization a_authorization, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
         {
             a_connection.WriteLine($"{a_authorization.Username}, you can now add a new task or quit.");
             if (a_authorization.Allows(AuthMgr.URGENT_TASK)) {
