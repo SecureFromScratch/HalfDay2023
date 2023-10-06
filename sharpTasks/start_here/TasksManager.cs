@@ -34,7 +34,7 @@ namespace TasksServer
             }
         }
 
-        public Task[] GetActiveTasks()
+        public Task[] GetActiveTasks(string a_username)
         {
             try
             {

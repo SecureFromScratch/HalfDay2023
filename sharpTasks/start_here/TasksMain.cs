@@ -55,9 +55,9 @@ namespace TasksServer
             }
         }
 
-        private static void DisplayActiveTasks(string a_username, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
+        private void DisplayActiveTasks(string a_username, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
         {
-            Task[] tasks = a_tasksMgr.GetActiveTasks();
+            Task[] tasks = a_tasksMgr.GetActiveTasks(a_username);
             if (tasks.Length == 0)
             {
                 a_connection.WriteLine($"Hello {a_username}, there are currently no tasks that require attention.");
@@ -79,7 +79,7 @@ namespace TasksServer
             }
         }
 
-        private static void PerformAddTaskDialog(string a_username, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
+        private void PerformAddTaskDialog(string a_username, TasksManager a_tasksMgr, SimpleServer.SimpleServer.Connection a_connection)
         {
             a_connection.WriteLine($"{a_username}, you can now add a new task or quit.");
             a_connection.WriteLine("If you want a task to be marked as urgent, use '!' as the first character. Examples:");
